@@ -11,7 +11,7 @@ logger = setup_logger()
 async def main():
     config = load_config()
 
-    ws_manager = WebSocketManager("btcusdt@trade")
+    ws_manager = WebSocketManager(f"{config["trading_pair"]}@ticker")
     rest_api = RESTAPIManager(config["api_key"], config["secret_key"])
     strategy = StrategyManager()
     risk = RiskManager(stop_loss=0.02, take_profit=0.05)

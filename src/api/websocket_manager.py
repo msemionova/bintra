@@ -1,10 +1,14 @@
 import asyncio
 import websockets
 import logging
+from utils.config_loader import load_config
 
 class WebSocketManager:
+    config = load_config()
+    WS_URL = config["ws_url"]
+
     def __init__(self, stream: str):
-        self.url = f"wss://testnet.binance.vision/ws/{stream}"
+        self.url = f"{self.WS_URL}/{stream}"
 
     async def connect(self):
         try:

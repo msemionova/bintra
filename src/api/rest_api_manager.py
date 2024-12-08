@@ -2,10 +2,11 @@ import httpx
 import hmac
 import hashlib
 import time
-import os
+from utils.config_loader import load_config
 
 class RESTAPIManager:
-    BASE_URL = "https://testnet.binance.vision/api"
+    config = load_config()
+    BASE_URL = config["api_url"]
 
     def __init__(self, api_key: str, secret_key: str):
         self.api_key = api_key
