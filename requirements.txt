@@ -3,3 +3,5 @@ pandas==1.5.3
 numpy==1.24.3
 python-dotenv==1.0.0
 asyncio==3.4.3
+websockets
+httpx

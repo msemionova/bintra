@@ -1,9 +1,10 @@
 from binance.client import Client
-from binance.websockets import BinanceSocketManager
 from binance.enums import *
 import asyncio
 import logging
-from ..config import Config
+from binance_trader.config import Config
+from .websocket_manager import WebSocketManager
+from .rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -19,25 +20,25 @@ class BinanceClient:
         self._setup_socket_manager()
 
     def _setup_socket_manager(self):
-        self.bm = BinanceSocketManager(self.client)
+        """Initialize WebSocket manager"""
+        self.ws_manager = WebSocketManager()
+        self.rate_limiter = RateLimiter(max_requests=1200, time_window=60)
+        self.rate_limiter.start()
 
-    async def start_kline_socket(self, symbol, callback, interval='1m'):
+    async def start_kline_socket(self, symbol: str, callback, interval: str = '1m'):
         """Start a WebSocket connection for kline/candlestick data"""
         try:
-            conn_key = f"{symbol}_{interval}"
-            self.ws_connections[conn_key] = self.bm.start_kline_socket(
-                symbol,
-                callback,
-                interval=interval
-            )
+            stream_name = f"{symbol.lower()}@kline_{interval}"
+            await self.ws_manager.connect_socket(stream_name, callback)
             logger.info(f"Started kline socket for {symbol} - {interval}")
         except Exception as e:
             logger.error(f"Error starting kline socket: {e}")
             raise
 
-    def place_order(self, symbol, side, order_type, quantity, price=None):
+    async def place_order(self, symbol: str, side: str, order_type: str, quantity: float, price: float = None):
         """Place an order on Binance"""
         try:
+            await self.rate_limiter.acquire()
             params = {
                 'symbol': symbol,
                 'side': side,
@@ -54,19 +55,20 @@ class BinanceClient:
             logger.error(f"Error placing order: {e}")
             raise
 
-    def get_account_balance(self):
+    async def get_account_balance(self):
         """Get account balance for all assets"""
         try:
+            await self.rate_limiter.acquire()
             return self.client.get_account()
         except Exception as e:
             logger.error(f"Error getting account balance: {e}")
             raise
 
-    def close_all_connections(self):
+    async def close_all_connections(self):
         """Close all WebSocket connections"""
         try:
-            self.bm.close()
-            self.ws_connections.clear()
+            await self.ws_manager.close()
             logger.info("Closed all WebSocket connections")
         except Exception as e:
-            logger.error(f"Error closing connections: {e}")
+            logger.error(f"Error closing WebSocket connections: {e}")
+            raise

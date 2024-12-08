@@ -3,7 +3,6 @@ import json
 import threading
 import time
 
-
 class BinanceWebSocketClient:
     def __init__(self):
         self.base_url = "wss://testnet.binance.vision/ws"
