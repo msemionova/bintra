@@ -3,7 +3,7 @@ import numpy as np
 from utils.logger import setup_logger
 from strategies.indicators import calculate_rsi
 
-logger = setup_logger(log_file="logs/bintra_strategy.log")
+logger = setup_logger(log_file="logs/main.log")
 
 class StrategyManager:
     def __init__(self, buy_threshold=30, sell_threshold=70):
@@ -25,6 +25,8 @@ class StrategyManager:
         if len(self.close_prices) > 100:  # Limit the stored prices to the last 100
             self.close_prices.pop(0)
 
+        logger.info(f"Updated close prices: {self.close_prices[-5:]}")  # Log last 5 prices
+
     def evaluate_strategy(self) -> str | None:
         """
         Analyzes the market data and generates trading signals based on RSI.
@@ -32,7 +34,8 @@ class StrategyManager:
         Returns:
             str | None: "BUY", "SELL", or None if no action is required.
         """
-        if len(self.close_prices) < 15:  # Ensure enough data for RSI calculation
+        if len(self.close_prices) < 14:  # Ensure enough data for RSI calculation
+            logger.info("Not enough data for RSI calculation.")
             return None
 
         # Calculate RSI
