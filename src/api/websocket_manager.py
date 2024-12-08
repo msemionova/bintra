@@ -1,8 +1,9 @@
 import asyncio
 import websockets
-import logging
+from utils.logger import setup_logger
 from utils.config_loader import load_config
 
+logger = setup_logger(log_file="logs/bintra_websocket.log")
 class WebSocketManager:
     config = load_config()
     WS_URL = config["ws_url"]
@@ -12,11 +13,11 @@ class WebSocketManager:
 
     async def connect(self):
         try:
-            logging.info("Connecting to WebSocket...")
+            logger.info("Connecting to WebSocket...")
             async with websockets.connect(self.url) as ws:
                 while True:
                     message = await ws.recv()
-                    logging.info(f"Received: {message}")
+                    logger.info(f"Received: {message}")
         except websockets.ConnectionClosed:
-            logging.warning("WebSocket connection closed. Reconnecting...")
+            logger.warning("WebSocket connection closed. Reconnecting...")
             await self.connect()
