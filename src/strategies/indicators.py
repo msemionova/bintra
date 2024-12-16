@@ -1,22 +1,21 @@
 import numpy as np
+import talib
+from utils.logger import setup_logger
 
+logger = setup_logger(log_file="logs/main.log")
+
+# Example function to calculate RSI using TA-Lib
 def calculate_rsi(prices, period=14):
-    """
-    Calculates the Relative Strength Index (RSI).
-    """
+    # Ensure we have enough data for RSI calculation
     if len(prices) < period:
-        return 50  # Neutral RSI if insufficient data
+        return None  # Not enough data to calculate RSI
 
-    deltas = np.diff(prices)
-    gains = np.maximum(deltas, 0)
-    losses = -np.minimum(deltas, 0)
+    # Convert the list to a numpy array (TA-Lib expects numpy arrays)
+    prices_array = np.array(prices)
 
-    avg_gain = np.mean(gains[-period:])
-    avg_loss = np.mean(losses[-period:])
+    if len(prices) > period:
+        # Calculate RSI using TA-Lib (adjust the period as needed)
+        rsi = talib.RSI(prices_array, timeperiod=period)
+        logger.info(f"Talib RSI: {rsi}")
 
-    if avg_loss == 0:
-        return 100  # RSI is 100 if no losses
-
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
+        return rsi[-1]  # Return the most recent RSI value
